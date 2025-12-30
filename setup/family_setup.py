@@ -91,9 +91,9 @@ def family_setup_screen(go_to):
 
                 st.success(f"{name} added successfully!")
 
-                # ---- RESET FORM SAFELY ----
+                # ---- RESET FORM ----
                 st.session_state.form_counter += 1
-                st.experimental_rerun()
+                st.rerun()
 
     st.markdown("---")
 
@@ -121,7 +121,7 @@ def family_setup_screen(go_to):
                 if st.button("🗑️ Delete", key=f"delete_{idx}"):
                     st.session_state.family_members.pop(idx)
                     save_family_data(st.session_state.family_members)
-                    st.experimental_rerun()
+                    st.rerun()
 
     st.markdown("---")
 
