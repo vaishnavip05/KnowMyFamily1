@@ -38,10 +38,11 @@ def family_setup_screen(go_to):
     st.write("Add, review, or remove family members used in the games.")
     st.markdown("---")
 
+    # Initialize family members
     if "family_members" not in st.session_state:
         st.session_state.family_members = load_family_data()
 
-    # ---- form reset key ----
+    # Form reset key
     if "form_counter" not in st.session_state:
         st.session_state.form_counter = 0
 
@@ -80,6 +81,7 @@ def family_setup_screen(go_to):
                     with open(audio_path, "wb") as f:
                         f.write(audio_file.getbuffer())
 
+                # Add member
                 st.session_state.family_members.append({
                     "name": name,
                     "relationship": relationship,
@@ -88,12 +90,10 @@ def family_setup_screen(go_to):
                 })
 
                 save_family_data(st.session_state.family_members)
-
                 st.success(f"{name} added successfully!")
 
-                # ---- RESET FORM ----
+                # ✅ Reset form by changing key (NO rerun)
                 st.session_state.form_counter += 1
-                st.rerun()
 
     st.markdown("---")
 
@@ -121,7 +121,6 @@ def family_setup_screen(go_to):
                 if st.button("🗑️ Delete", key=f"delete_{idx}"):
                     st.session_state.family_members.pop(idx)
                     save_family_data(st.session_state.family_members)
-                    st.rerun()
 
     st.markdown("---")
 
