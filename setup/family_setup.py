@@ -7,7 +7,6 @@ DATA_FILE = "data/family_data.json"
 IMAGE_FOLDER = "data/images"
 AUDIO_FOLDER = "data/audio"
 
-
 # --------------------------------------------------
 # Ensure folders exist (Streamlit Cloud safe)
 # --------------------------------------------------
@@ -16,7 +15,6 @@ if not os.path.isdir(IMAGE_FOLDER):
 
 if not os.path.isdir(AUDIO_FOLDER):
     os.makedirs(AUDIO_FOLDER)
-
 
 # --------------------------------------------------
 # Load existing family data
@@ -40,7 +38,7 @@ def save_family_data(data):
 def family_setup_screen(go_to):
 
     st.title("👨‍👩‍👧 Family Setup (Parent Section)")
-    st.write("Please add family members before starting the games.")
+    st.write("Add or edit family members used in the games.")
     st.markdown("---")
 
     # Initialize session state list
@@ -52,10 +50,7 @@ def family_setup_screen(go_to):
     # -------------------------------
     with st.form("add_member_form"):
         name = st.text_input("Name")
-        relationship = st.selectbox(
-            "Relationship",
-            ["Mother", "Father", "Grandmother", "Grandfather", "Sibling", "Other"]
-        )
+        relationship = st.text_input("Relationship (e.g., Mother, Grandpa, Aunt)")
         image_file = st.file_uploader(
             "Upload Photo",
             type=["jpg", "jpeg", "png"]
@@ -68,8 +63,8 @@ def family_setup_screen(go_to):
         submitted = st.form_submit_button("Add Person")
 
         if submitted:
-            if not name or not image_file:
-                st.warning("Please enter name and upload photo.")
+            if not name or not relationship or not image_file:
+                st.warning("Please enter name, relationship, and upload photo.")
             else:
                 # Save image
                 image_path = os.path.join(IMAGE_FOLDER, image_file.name)
@@ -112,7 +107,6 @@ def family_setup_screen(go_to):
                 st.write(f"**{member['name']}**")
                 st.write(member["relationship"])
 
-                # Play voice if available
                 if member.get("audio"):
                     audio_path = os.path.join(AUDIO_FOLDER, member["audio"])
                     if os.path.exists(audio_path):
@@ -121,8 +115,15 @@ def family_setup_screen(go_to):
     st.markdown("---")
 
     # -------------------------------
-    # Finish Setup
+    # Navigation Buttons
     # -------------------------------
-    if st.session_state.family_members:
-        if st.button("✅ Finish Setup"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.session_state.family_members:
+            if st.button("✅ Finish Setup"):
+                go_to("home")
+
+    with col2:
+        if st.button("⬅ Back to Home"):
             go_to("home")
