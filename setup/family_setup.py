@@ -8,13 +8,10 @@ IMAGE_FOLDER = "data/images"
 AUDIO_FOLDER = "data/audio"
 
 # --------------------------------------------------
-# Ensure folders exist (Streamlit Cloud safe)
+# Ensure folders exist
 # --------------------------------------------------
-if not os.path.isdir(IMAGE_FOLDER):
-    os.makedirs(IMAGE_FOLDER)
-
-if not os.path.isdir(AUDIO_FOLDER):
-    os.makedirs(AUDIO_FOLDER)
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
+os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 # --------------------------------------------------
 # Load existing family data
@@ -38,26 +35,37 @@ def save_family_data(data):
 def family_setup_screen(go_to):
 
     st.title("👨‍👩‍👧 Family Setup (Parent Section)")
-    st.write("Add or edit family members used in the games.")
+    st.write("Add, review, or remove family members used in the games.")
     st.markdown("---")
 
-    # Initialize session state list
+    # Initialize family data
     if "family_members" not in st.session_state:
         st.session_state.family_members = load_family_data()
+
+    # Initialize form fields (for clearing)
+    if "name_input" not in st.session_state:
+        st.session_state.name_input = ""
+    if "relationship_input" not in st.session_state:
+        st.session_state.relationship_input = ""
 
     # -------------------------------
     # Input Form
     # -------------------------------
     with st.form("add_member_form"):
-        name = st.text_input("Name")
-        relationship = st.text_input("Relationship (e.g., Mother, Grandpa, Aunt)")
+        name = st.text_input("Name", key="name_input")
+        relationship = st.text_input(
+            "Relationship (e.g., Mother, Grandpa, Aunt)",
+            key="relationship_input"
+        )
         image_file = st.file_uploader(
             "Upload Photo",
-            type=["jpg", "jpeg", "png"]
+            type=["jpg", "jpeg", "png"],
+            key="image_input"
         )
         audio_file = st.file_uploader(
             "Upload Voice (optional)",
-            type=["mp3", "wav", "ogg"]
+            type=["mp3", "wav", "ogg"],
+            key="audio_input"
         )
 
         submitted = st.form_submit_button("Add Person")
@@ -79,7 +87,7 @@ def family_setup_screen(go_to):
                     with open(audio_path, "wb") as f:
                         f.write(audio_file.getbuffer())
 
-                # Add member data
+                # Add member
                 st.session_state.family_members.append({
                     "name": name,
                     "relationship": relationship,
@@ -88,7 +96,15 @@ def family_setup_screen(go_to):
                 })
 
                 save_family_data(st.session_state.family_members)
+
+                # ---- CLEAR FORM FIELDS ----
+                st.session_state.name_input = ""
+                st.session_state.relationship_input = ""
+                st.session_state.image_input = None
+                st.session_state.audio_input = None
+
                 st.success(f"{name} added successfully!")
+                st.experimental_rerun()
 
     st.markdown("---")
 
@@ -104,6 +120,7 @@ def family_setup_screen(go_to):
                 img_path = os.path.join(IMAGE_FOLDER, member["image"])
                 if os.path.exists(img_path):
                     st.image(Image.open(img_path), width=150)
+
                 st.write(f"**{member['name']}**")
                 st.write(member["relationship"])
 
@@ -111,6 +128,12 @@ def family_setup_screen(go_to):
                     audio_path = os.path.join(AUDIO_FOLDER, member["audio"])
                     if os.path.exists(audio_path):
                         st.audio(audio_path)
+
+                # ---- DELETE BUTTON ----
+                if st.button("🗑️ Delete", key=f"delete_{idx}"):
+                    st.session_state.family_members.pop(idx)
+                    save_family_data(st.session_state.family_members)
+                    st.experimental_rerun()
 
     st.markdown("---")
 
