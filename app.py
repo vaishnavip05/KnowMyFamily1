@@ -1,4 +1,12 @@
 import streamlit as st
+import json
+import os
+
+# Import setup and game modules
+from setup.family_setup import family_setup_screen
+from games.meet_my_family import meet_my_family_screen
+from games.find_my_family import find_my_family_screen
+from games.who_is_speaking import who_is_speaking_screen
 
 # --------------------------------------------------
 # Page Configuration
@@ -8,11 +16,26 @@ st.set_page_config(
     layout="wide"
 )
 
+DATA_FILE = "data/family_data.json"
+
 # --------------------------------------------------
-# Session State for Navigation
+# Session State Initialization
 # --------------------------------------------------
 if "page" not in st.session_state:
-    st.session_state.page = "home"
+    st.session_state.page = "setup"
+
+# --------------------------------------------------
+# Helper: Check if family data exists
+# --------------------------------------------------
+def is_setup_complete():
+    if not os.path.exists(DATA_FILE):
+        return False
+    try:
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+        return len(data) > 0
+    except:
+        return False
 
 # --------------------------------------------------
 # Navigation Helper
@@ -21,14 +44,13 @@ def go_to(page_name):
     st.session_state.page = page_name
 
 # --------------------------------------------------
-# HOME SCREEN
+# HOME SCREEN (AFTER SETUP)
 # --------------------------------------------------
 def home_screen():
     st.title("Know My Family")
     st.write("Learn your family through simple and friendly games 💙")
     st.markdown("---")
 
-    # Three game blocks displayed horizontally
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -50,41 +72,25 @@ def home_screen():
             go_to("who_is_speaking")
 
 # --------------------------------------------------
-# PLACEHOLDER SCREENS FOR GAMES
-# (Actual game logic will go in separate files later)
+# MAIN APP FLOW
 # --------------------------------------------------
-def meet_my_family_screen():
-    st.header("👨‍👩‍👧 Meet My Family")
-    st.write("Game 1 will be implemented here.")
-    st.markdown("---")
-    if st.button("⬅ Back to Home"):
+if not is_setup_complete():
+    # Parent must complete setup first
+    family_setup_screen(go_to)
+
+else:
+    # After setup is done
+    if st.session_state.page == "setup":
         go_to("home")
 
-def find_my_family_screen():
-    st.header("🛤️ Find My Family")
-    st.write("Game 2 will be implemented here.")
-    st.markdown("---")
-    if st.button("⬅ Back to Home"):
-        go_to("home")
+    if st.session_state.page == "home":
+        home_screen()
 
-def who_is_speaking_screen():
-    st.header("🔊 Who Is Speaking?")
-    st.write("Game 3 will be implemented here.")
-    st.markdown("---")
-    if st.button("⬅ Back to Home"):
-        go_to("home")
+    elif st.session_state.page == "meet_my_family":
+        meet_my_family_screen(go_to)
 
-# --------------------------------------------------
-# PAGE ROUTING
-# --------------------------------------------------
-if st.session_state.page == "home":
-    home_screen()
+    elif st.session_state.page == "find_my_family":
+        find_my_family_screen(go_to)
 
-elif st.session_state.page == "meet_my_family":
-    meet_my_family_screen()
-
-elif st.session_state.page == "find_my_family":
-    find_my_family_screen()
-
-elif st.session_state.page == "who_is_speaking":
-    who_is_speaking_screen()
+    elif st.session_state.page == "who_is_speaking":
+        who_is_speaking_screen(go_to)
