@@ -42,6 +42,7 @@ def is_setup_complete():
 # --------------------------------------------------
 def go_to(page_name):
     st.session_state.page = page_name
+    st.experimental_rerun()
 
 # --------------------------------------------------
 # HOME SCREEN (AFTER SETUP)
@@ -49,8 +50,15 @@ def go_to(page_name):
 def home_screen():
     st.title("Know My Family")
     st.write("Learn your family through simple and friendly games 💙")
+
+    # ---- Parent option to edit setup ----
+    st.markdown("### 👨‍👩‍👧 Parent Options")
+    if st.button("✏️ Edit Family Setup"):
+        go_to("setup")
+
     st.markdown("---")
 
+    # ---- Games Section ----
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -74,23 +82,23 @@ def home_screen():
 # --------------------------------------------------
 # MAIN APP FLOW
 # --------------------------------------------------
-if not is_setup_complete():
-    # Parent must complete setup first
+if st.session_state.page == "setup":
+    # Always allow setup page when explicitly chosen
     family_setup_screen(go_to)
 
-else:
-    # After setup is done
-    if st.session_state.page == "setup":
-        go_to("home")
+elif not is_setup_complete():
+    # First-time users must complete setup
+    st.session_state.page = "setup"
+    family_setup_screen(go_to)
 
-    if st.session_state.page == "home":
-        home_screen()
+elif st.session_state.page == "home":
+    home_screen()
 
-    elif st.session_state.page == "meet_my_family":
-        meet_my_family_screen(go_to)
+elif st.session_state.page == "meet_my_family":
+    meet_my_family_screen(go_to)
 
-    elif st.session_state.page == "find_my_family":
-        find_my_family_screen(go_to)
+elif st.session_state.page == "find_my_family":
+    find_my_family_screen(go_to)
 
-    elif st.session_state.page == "who_is_speaking":
-        who_is_speaking_screen(go_to)
+elif st.session_state.page == "who_is_speaking":
+    who_is_speaking_screen(go_to)
