@@ -38,11 +38,10 @@ def is_setup_complete():
         return False
 
 # --------------------------------------------------
-# Navigation Helper
+# Navigation Helper (NO RERUN HERE)
 # --------------------------------------------------
 def go_to(page_name):
     st.session_state.page = page_name
-    st.experimental_rerun()
 
 # --------------------------------------------------
 # HOME SCREEN (AFTER SETUP)
@@ -83,11 +82,9 @@ def home_screen():
 # MAIN APP FLOW
 # --------------------------------------------------
 if st.session_state.page == "setup":
-    # Always allow setup page when explicitly chosen
     family_setup_screen(go_to)
 
 elif not is_setup_complete():
-    # First-time users must complete setup
     st.session_state.page = "setup"
     family_setup_screen(go_to)
 
