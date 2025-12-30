@@ -38,10 +38,11 @@ def is_setup_complete():
         return False
 
 # --------------------------------------------------
-# Navigation Helper (NO RERUN HERE)
+# Navigation Helper (STOP FALL-THROUGH)
 # --------------------------------------------------
 def go_to(page_name):
     st.session_state.page = page_name
+    st.stop()
 
 # --------------------------------------------------
 # HOME SCREEN (AFTER SETUP)
