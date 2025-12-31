@@ -2,173 +2,156 @@ import streamlit as st
 import json
 import os
 import random
-from PIL import Image
 
 DATA_FILE = "data/family_data.json"
-IMAGE_FOLDER = "data/images"
 
-
-# --------------------------------------------------
+# -----------------------------
 # Load family data
-# --------------------------------------------------
+# -----------------------------
 def load_family_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             return json.load(f)
     return []
 
+# -----------------------------
+# Maze layout (0 = path, 1 = wall)
+# -----------------------------
+MAZE = [
+    [0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 0, 1],
+    [0, 0, 0, 0, 0],
+]
 
-# --------------------------------------------------
-# Reset game
-# --------------------------------------------------
-def reset_find_game():
-    for key in [
-        "fm_stage",
-        "fm_target",
-        "fm_path",
-        "fm_index",
-        "fm_wrong",
-    ]:
-        if key in st.session_state:
-            del st.session_state[key]
+START_POS = (0, 0)
 
+# -----------------------------
+# Render Maze
+# -----------------------------
+def render_maze(player_pos, target_positions, correct_target):
+    for r in range(len(MAZE)):
+        cols = st.columns(len(MAZE[0]))
+        for c in range(len(MAZE[0])):
+            cell = "⬜"
+            if MAZE[r][c] == 1:
+                cell = "⬛"
+            if (r, c) == player_pos:
+                cell = "🧒"
+            if (r, c) in target_positions:
+                name = target_positions[(r, c)]["name"]
+                cell = "👤"
+            cols[c].markdown(f"<h3 style='text-align:center'>{cell}</h3>", unsafe_allow_html=True)
 
-# --------------------------------------------------
-# Find My Family Game
-# --------------------------------------------------
+# -----------------------------
+# Main Game Screen
+# -----------------------------
 def find_my_family_screen(go_to):
 
-    st.title("🛤️ Find My Family")
-    st.write("Choose the correct path to reach your family 💙")
-    st.markdown("---")
-
+    st.title("🧭 Find My Family")
     family = load_family_data()
 
-    if len(family) < 2:
-        st.warning("Please add at least 2 family members.")
+    if not family:
+        st.warning("Please complete Family Setup first.")
         if st.button("⬅ Back to Setup"):
             go_to("setup")
         return
 
-    # --------------------------------------------------
-    # Stage setup
-    # --------------------------------------------------
-    if "fm_stage" not in st.session_state:
-        st.session_state.fm_stage = "intro"
+    # -----------------------------
+    # INIT SESSION STATE
+    # -----------------------------
+    if "start_game" not in st.session_state:
+        st.session_state.start_game = False
 
-    # --------------------------------------------------
-    # INTRO: Show family
-    # --------------------------------------------------
-    if st.session_state.fm_stage == "intro":
-        st.subheader("👨‍👩‍👧 Your Family")
-
+    if not st.session_state.start_game:
+        st.subheader("👨‍👩‍👧 My Family")
         cols = st.columns(3)
         for i, m in enumerate(family):
             with cols[i % 3]:
-                img = os.path.join(IMAGE_FOLDER, m["image"])
-                if os.path.exists(img):
-                    st.image(Image.open(img), width=140)
                 st.write(f"**{m['name']}**")
                 st.write(m["relationship"])
 
-        st.markdown("---")
         if st.button("▶ Start Game"):
-            st.session_state.fm_stage = "game"
-            st.rerun()
+            st.session_state.start_game = True
+            st.session_state.player_pos = START_POS
+            st.session_state.target = random.choice(family)
+
+            # Place two family members at end
+            st.session_state.targets = {
+                (4, 4): st.session_state.target,
+                (4, 0): random.choice([f for f in family if f != st.session_state.target])
+            }
+            st.stop()
 
         if st.button("⬅ Back to Home"):
             go_to("home")
-
         return
 
-    # --------------------------------------------------
-    # GAME SETUP
-    # --------------------------------------------------
-    if "fm_target" not in st.session_state:
-        st.session_state.fm_target = random.choice(family)
-        st.session_state.fm_path = [1, 2, 3, 4, 5, 6]
-        st.session_state.fm_index = 0
-        st.session_state.fm_wrong = None
+    # -----------------------------
+    # GAME PLAY
+    # -----------------------------
+    target = st.session_state.target
+    player_pos = st.session_state.player_pos
 
-    target = st.session_state.fm_target
-    index = st.session_state.fm_index
+    st.info(f"👶 Task: Help the child reach **{target['relationship']} ({target['name']})**")
 
-    st.info(f"🧒 Task: Go to **{target['relationship']} ({target['name']})**")
+    render_maze(player_pos, st.session_state.targets, target)
 
-    st.markdown("### 🧩 Path")
+    st.markdown("### Move the child")
 
-    # --------------------------------------------------
-    # Draw nodes
-    # --------------------------------------------------
-    for i in range(len(st.session_state.fm_path)):
-        node_number = st.session_state.fm_path[i]
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        if st.button("⬆️ Up"):
+            move(-1, 0)
+    with col1:
+        if st.button("⬅️ Left"):
+            move(0, -1)
+    with col3:
+        if st.button("➡️ Right"):
+            move(0, 1)
+    with col2:
+        if st.button("⬇️ Down"):
+            move(1, 0)
 
-        # COLOR LOGIC
-        if i < index:
-            st.success(f"🟢 Node {node_number}")
-        elif i == index:
-            st.warning(f"🟡 You are here (Node {node_number})")
-        else:
-            st.write(f"⚪ Node {node_number}")
-
-        # If current node → show choices
-        if i == index:
-            st.markdown("#### Choose next path")
-
-            correct = f"Node {node_number + 1}"
-            wrong = f"Node {node_number + random.randint(2,4)}"
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                if st.button(correct):
-                    st.session_state.fm_index += 1
-                    st.session_state.fm_wrong = None
-                    st.rerun()
-
-            with col2:
-                if st.button(wrong):
-                    st.session_state.fm_wrong = "Try again 🙂"
-                    st.rerun()
-
-            if st.session_state.fm_wrong:
-                st.error(st.session_state.fm_wrong)
-
-        st.markdown("---")
-
-    # --------------------------------------------------
-    # FINAL CHOICE
-    # --------------------------------------------------
-    if st.session_state.fm_index == len(st.session_state.fm_path):
-
-        st.subheader("🎯 Final Choice")
-
-        wrong_person = random.choice(
-            [m for m in family if m != target]
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            img = os.path.join(IMAGE_FOLDER, target["image"])
-            if os.path.exists(img):
-                st.image(Image.open(img), width=160)
-            if st.button(f"Give to {target['name']}"):
-                st.balloons()
-                st.success("🎉 You reached the right person!")
-
-        with col2:
-            img = os.path.join(IMAGE_FOLDER, wrong_person["image"])
-            if os.path.exists(img):
-                st.image(Image.open(img), width=160)
-            if st.button(f"Give to {wrong_person['name']}"):
-                st.error("❌ Try again!")
-
-        st.markdown("---")
-        if st.button("🔁 Play Again"):
-            reset_find_game()
-            st.rerun()
-
+    st.markdown("---")
     if st.button("⬅ Back to Home"):
-        reset_find_game()
+        reset_game()
         go_to("home")
+
+# -----------------------------
+# Movement Logic
+# -----------------------------
+def move(dr, dc):
+    r, c = st.session_state.player_pos
+    nr, nc = r + dr, c + dc
+
+    if nr < 0 or nc < 0 or nr >= len(MAZE) or nc >= len(MAZE[0]):
+        st.warning("🚫 Can't go that way!")
+        st.stop()
+
+    if MAZE[nr][nc] == 1:
+        st.warning("🚧 That path is blocked!")
+        st.stop()
+
+    st.session_state.player_pos = (nr, nc)
+
+    # Check destination
+    if (nr, nc) in st.session_state.targets:
+        chosen = st.session_state.targets[(nr, nc)]
+        if chosen["name"] == st.session_state.target["name"]:
+            st.balloons()
+            st.success("🎉 You reached the correct family member!")
+        else:
+            st.error(f"❌ This is {chosen['name']}. Try again!")
+            st.session_state.player_pos = START_POS
+
+    st.stop()
+
+# -----------------------------
+# Reset
+# -----------------------------
+def reset_game():
+    for key in ["start_game", "player_pos", "targets", "target"]:
+        if key in st.session_state:
+            del st.session_state[key]
