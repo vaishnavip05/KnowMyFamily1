@@ -43,17 +43,10 @@ def find_my_family_screen(go_to):
     # ----------------------------
     # SESSION INIT
     # ----------------------------
-    if "started" not in st.session_state:
-        st.session_state.started = False
-
-    if "pos" not in st.session_state:
-        st.session_state.pos = START
-
-    if "target" not in st.session_state:
-        st.session_state.target = random.choice(family)
-
-    if "msg" not in st.session_state:
-        st.session_state.msg = ""
+    st.session_state.setdefault("started", False)
+    st.session_state.setdefault("pos", START)
+    st.session_state.setdefault("target", random.choice(family))
+    st.session_state.setdefault("msg", "")
 
     # ======================================================
     # START SCREEN
@@ -72,7 +65,7 @@ def find_my_family_screen(go_to):
 
         if st.button("▶ Start Game"):
             st.session_state.started = True
-            st.experimental_rerun()   # ✅ FIX DOUBLE CLICK
+            st.stop()   # ✅ FIX DOUBLE CLICK
 
         if st.button("⬅ Back to Home"):
             go_to("home")
@@ -116,7 +109,7 @@ def find_my_family_screen(go_to):
         st.warning(st.session_state.msg)
 
     # ======================================================
-    # MOVE LOGIC (CORRECT)
+    # MOVE LOGIC (CORRECT & STABLE)
     # ======================================================
     r, c = st.session_state.pos
 
@@ -126,24 +119,26 @@ def find_my_family_screen(go_to):
             st.session_state.msg = ""
         else:
             st.session_state.msg = "🚫 Can't go that way!"
+        st.stop()   # 🔥 CRITICAL FIX
 
     st.markdown("### Move the child")
 
-    col1, col2, col3 = st.columns([1, 1, 1])
+    colL, colU, colR = st.columns(3)
 
-    with col2:
+    with colU:
         if st.button("⬆ Up"):
             move(r - 1, c)
 
-    with col1:
+    with colL:
         if st.button("⬅ Left"):
             move(r, c - 1)
 
-    with col3:
+    with colR:
         if st.button("➡ Right"):
             move(r, c + 1)
 
-    with col2:
+    colD = st.columns(3)[1]
+    with colD:
         if st.button("⬇ Down"):
             move(r + 1, c)
 
@@ -157,7 +152,7 @@ def find_my_family_screen(go_to):
         if st.button("🔁 Play Again"):
             for k in ["started", "pos", "target", "msg"]:
                 st.session_state.pop(k, None)
-            st.experimental_rerun()
+            st.stop()
 
     if st.button("⬅ Back to Home"):
         for k in ["started", "pos", "target", "msg"]:
