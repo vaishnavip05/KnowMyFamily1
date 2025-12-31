@@ -8,6 +8,9 @@ DATA_FILE = "data/family_data.json"
 IMAGE_FOLDER = "data/images"
 
 
+# --------------------------------------------------
+# Load family data
+# --------------------------------------------------
 def load_family_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
@@ -15,29 +18,49 @@ def load_family_data():
     return []
 
 
+# --------------------------------------------------
+# Reset game
+# --------------------------------------------------
+def reset_find_game():
+    for key in [
+        "fm_stage",
+        "fm_target",
+        "fm_path",
+        "fm_index",
+        "fm_wrong",
+    ]:
+        if key in st.session_state:
+            del st.session_state[key]
+
+
+# --------------------------------------------------
+# Find My Family Game
+# --------------------------------------------------
 def find_my_family_screen(go_to):
 
     st.title("🛤️ Find My Family")
+    st.write("Choose the correct path to reach your family 💙")
     st.markdown("---")
 
     family = load_family_data()
+
     if len(family) < 2:
         st.warning("Please add at least 2 family members.")
-        if st.button("⬅ Back"):
+        if st.button("⬅ Back to Setup"):
             go_to("setup")
         return
 
-    # -------------------------------
-    # STATE INIT
-    # -------------------------------
+    # --------------------------------------------------
+    # Stage setup
+    # --------------------------------------------------
     if "fm_stage" not in st.session_state:
         st.session_state.fm_stage = "intro"
 
-    # -------------------------------
-    # STAGE 1: SHOW FAMILY
-    # -------------------------------
+    # --------------------------------------------------
+    # INTRO: Show family
+    # --------------------------------------------------
     if st.session_state.fm_stage == "intro":
-        st.subheader("👨‍👩‍👧 My Family")
+        st.subheader("👨‍👩‍👧 Your Family")
 
         cols = st.columns(3)
         for i, m in enumerate(family):
@@ -48,108 +71,104 @@ def find_my_family_screen(go_to):
                 st.write(f"**{m['name']}**")
                 st.write(m["relationship"])
 
+        st.markdown("---")
         if st.button("▶ Start Game"):
             st.session_state.fm_stage = "game"
             st.rerun()
 
         if st.button("⬅ Back to Home"):
             go_to("home")
+
         return
 
-    # -------------------------------
-    # STAGE 2: GAME SETUP
-    # -------------------------------
-    if "graph" not in st.session_state:
-        target = random.choice(family)
-        wrong = random.choice([m for m in family if m != target])
+    # --------------------------------------------------
+    # GAME SETUP
+    # --------------------------------------------------
+    if "fm_target" not in st.session_state:
+        st.session_state.fm_target = random.choice(family)
+        st.session_state.fm_path = [1, 2, 3, 4, 5, 6]
+        st.session_state.fm_index = 0
+        st.session_state.fm_wrong = None
 
-        st.session_state.target = target
-        st.session_state.wrong = wrong
+    target = st.session_state.fm_target
+    index = st.session_state.fm_index
 
-        # Node graph
-        # 0 = start
-        # Correct path: 0 → 1 → 2 → 3 → 4
-        st.session_state.graph = {
-            0: [1, 5],
-            1: [2, 6],
-            2: [3],
-            3: [4],
-            4: ["target", "wrong"]
-        }
+    st.info(f"🧒 Task: Go to **{target['relationship']} ({target['name']})**")
 
-        st.session_state.current = 0
-        st.session_state.visited = [0]
+    st.markdown("### 🧩 Path")
 
-    target = st.session_state.target
-    wrong = st.session_state.wrong
+    # --------------------------------------------------
+    # Draw nodes
+    # --------------------------------------------------
+    for i in range(len(st.session_state.fm_path)):
+        node_number = st.session_state.fm_path[i]
 
-    st.info(f"🧒 Task: Give the 🍎 apple to **{target['relationship']} ({target['name']})**")
-    st.markdown("---")
+        # COLOR LOGIC
+        if i < index:
+            st.success(f"🟢 Node {node_number}")
+        elif i == index:
+            st.warning(f"🟡 You are here (Node {node_number})")
+        else:
+            st.write(f"⚪ Node {node_number}")
 
-    # -------------------------------
-    # DRAW PATH
-    # -------------------------------
-    st.subheader("🧭 Choose your path")
+        # If current node → show choices
+        if i == index:
+            st.markdown("#### Choose next path")
 
-    col1, col2, col3 = st.columns([2, 1, 2])
+            correct = f"Node {node_number + 1}"
+            wrong = f"Node {node_number + random.randint(2,4)}"
 
-    with col2:
-        for node in range(5):
-            if node in st.session_state.visited:
-                st.markdown("🟢")
-            else:
-                st.markdown("⚪")
+            col1, col2 = st.columns(2)
 
-            if node in st.session_state.graph and node == st.session_state.current:
-                for nxt in st.session_state.graph[node]:
-                    if isinstance(nxt, int):
-                        if st.button(f"➡ Node {nxt}", key=f"n{node}_{nxt}"):
-                            if nxt == node + 1:
-                                st.session_state.visited.append(nxt)
-                                st.session_state.current = nxt
-                                st.success("Good choice!")
-                            else:
-                                st.warning("Try again 🙂")
-                            st.rerun()
+            with col1:
+                if st.button(correct):
+                    st.session_state.fm_index += 1
+                    st.session_state.fm_wrong = None
+                    st.rerun()
 
-    # -------------------------------
-    # FINAL CHOICE
-    # -------------------------------
-    if st.session_state.current == 4:
+            with col2:
+                if st.button(wrong):
+                    st.session_state.fm_wrong = "Try again 🙂"
+                    st.rerun()
+
+            if st.session_state.fm_wrong:
+                st.error(st.session_state.fm_wrong)
+
         st.markdown("---")
-        st.subheader("🔀 Who should get the apple?")
 
-        c1, c2 = st.columns(2)
+    # --------------------------------------------------
+    # FINAL CHOICE
+    # --------------------------------------------------
+    if st.session_state.fm_index == len(st.session_state.fm_path):
 
-        with c1:
+        st.subheader("🎯 Final Choice")
+
+        wrong_person = random.choice(
+            [m for m in family if m != target]
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
             img = os.path.join(IMAGE_FOLDER, target["image"])
             if os.path.exists(img):
-                st.image(Image.open(img), width=150)
+                st.image(Image.open(img), width=160)
             if st.button(f"Give to {target['name']}"):
                 st.balloons()
-                st.success("🎉 Correct! Well done!")
-                reset_find_my_family()
+                st.success("🎉 You reached the right person!")
 
-        with c2:
-            img = os.path.join(IMAGE_FOLDER, wrong["image"])
+        with col2:
+            img = os.path.join(IMAGE_FOLDER, wrong_person["image"])
             if os.path.exists(img):
-                st.image(Image.open(img), width=150)
-            if st.button(f"Give to {wrong['name']}"):
-                st.error("❌ Oops! Try again 🙂")
+                st.image(Image.open(img), width=160)
+            if st.button(f"Give to {wrong_person['name']}"):
+                st.error("❌ Try again!")
+
+        st.markdown("---")
+        if st.button("🔁 Play Again"):
+            reset_find_game()
+            st.rerun()
 
     if st.button("⬅ Back to Home"):
-        reset_find_my_family()
+        reset_find_game()
         go_to("home")
-
-
-def reset_find_my_family():
-    for k in [
-        "fm_stage",
-        "graph",
-        "current",
-        "visited",
-        "target",
-        "wrong",
-    ]:
-        if k in st.session_state:
-            del st.session_state[k]
