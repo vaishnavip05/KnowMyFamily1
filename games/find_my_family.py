@@ -14,7 +14,7 @@ MAZE = [
     [1, 1, 1, 1, 1],
     [0, 0, 1, 1, 1],
     [1, 1, 1, 0, 1],
-    [1, 0, 1, 1, 1],
+    [1, 0, 0, 1, 1],
     [1, 1, 1, 0, 1],
 ]
 
@@ -84,7 +84,7 @@ def find_my_family_screen(go_to):
     # TASK
     # =====================================================
     st.info(
-        f"👶 Task: Help the child reach "
+        f"👶 Go to "
         f"**{st.session_state.target['relationship']} "
         f"({st.session_state.target['name']})**"
     )
