@@ -9,48 +9,55 @@ IMAGE_FOLDER = "data/images"
 
 GRID_SIZE = 5
 
-# ✅ SOLVABLE MAZE
+# ✅ FIXED SOLVABLE MAZE (1 = path, 0 = wall)
 MAZE = [
     [1, 1, 1, 1, 1],
     [0, 0, 1, 0, 1],
     [1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 1],
+    [1, 1, 1, 0, 1],
 ]
 
 START = (0, 0)
 END = (4, 4)
 
-# ----------------------------
+# -----------------------------------
 def load_family_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             return json.load(f)
     return []
 
-# ----------------------------
+# -----------------------------------
 def find_my_family_screen(go_to):
 
     st.title("🧭 Find My Family")
 
     family = load_family_data()
     if not family:
-        st.warning("Complete Family Setup first.")
+        st.warning("Please complete Family Setup first.")
         if st.button("⬅ Back to Setup"):
             go_to("setup")
         return
 
-    # ----------------------------
-    # SESSION INIT
-    # ----------------------------
-    st.session_state.setdefault("started", False)
-    st.session_state.setdefault("pos", START)
-    st.session_state.setdefault("target", random.choice(family))
-    st.session_state.setdefault("msg", "")
+    # -----------------------------------
+    # SESSION STATE INIT
+    # -----------------------------------
+    if "started" not in st.session_state:
+        st.session_state.started = False
 
-    # ======================================================
-    # START SCREEN
-    # ======================================================
+    if "pos" not in st.session_state:
+        st.session_state.pos = START
+
+    if "target" not in st.session_state:
+        st.session_state.target = random.choice(family)
+
+    if "msg" not in st.session_state:
+        st.session_state.msg = ""
+
+    # =====================================================
+    # START SCREEN (FAMILY VIEW)
+    # =====================================================
     if not st.session_state.started:
         st.subheader("👨‍👩‍👧 My Family")
 
@@ -65,25 +72,25 @@ def find_my_family_screen(go_to):
 
         if st.button("▶ Start Game"):
             st.session_state.started = True
-            st.stop()   # ✅ FIX DOUBLE CLICK
+            st.experimental_rerun()
 
         if st.button("⬅ Back to Home"):
             go_to("home")
 
         return
 
-    # ======================================================
+    # =====================================================
     # TASK
-    # ======================================================
+    # =====================================================
     st.info(
         f"👶 Task: Help the child reach "
         f"**{st.session_state.target['relationship']} "
         f"({st.session_state.target['name']})**"
     )
 
-    # ======================================================
-    # DRAW MAZE
-    # ======================================================
+    # =====================================================
+    # DRAW MAZE GRID
+    # =====================================================
     for r in range(GRID_SIZE):
         cols = st.columns(GRID_SIZE)
         for c in range(GRID_SIZE):
@@ -96,21 +103,21 @@ def find_my_family_screen(go_to):
                         st.session_state.target["image"]
                     )
                     if os.path.exists(img):
-                        st.image(Image.open(img), width=50)
+                        st.image(Image.open(img), width=45)
                 elif MAZE[r][c] == 1:
                     st.markdown("🟣")
                 else:
                     st.markdown("⬛")
 
-    # ======================================================
+    # =====================================================
     # MESSAGE
-    # ======================================================
+    # =====================================================
     if st.session_state.msg:
         st.warning(st.session_state.msg)
 
-    # ======================================================
-    # MOVE LOGIC (CORRECT & STABLE)
-    # ======================================================
+    # =====================================================
+    # MOVE LOGIC (NO st.stop HERE ❗)
+    # =====================================================
     r, c = st.session_state.pos
 
     def move(nr, nc):
@@ -119,32 +126,30 @@ def find_my_family_screen(go_to):
             st.session_state.msg = ""
         else:
             st.session_state.msg = "🚫 Can't go that way!"
-        st.stop()   # 🔥 CRITICAL FIX
 
     st.markdown("### Move the child")
 
-    colL, colU, colR = st.columns(3)
+    col1, col2, col3 = st.columns([1, 1, 1])
 
-    with colU:
+    with col2:
         if st.button("⬆ Up"):
             move(r - 1, c)
 
-    with colL:
+    with col1:
         if st.button("⬅ Left"):
             move(r, c - 1)
 
-    with colR:
+    with col3:
         if st.button("➡ Right"):
             move(r, c + 1)
 
-    colD = st.columns(3)[1]
-    with colD:
+    with col2:
         if st.button("⬇ Down"):
             move(r + 1, c)
 
-    # ======================================================
+    # =====================================================
     # SUCCESS
-    # ======================================================
+    # =====================================================
     if st.session_state.pos == END:
         st.balloons()
         st.success(f"🎉 You reached {st.session_state.target['name']}!")
@@ -152,7 +157,7 @@ def find_my_family_screen(go_to):
         if st.button("🔁 Play Again"):
             for k in ["started", "pos", "target", "msg"]:
                 st.session_state.pop(k, None)
-            st.stop()
+            st.experimental_rerun()
 
     if st.button("⬅ Back to Home"):
         for k in ["started", "pos", "target", "msg"]:
