@@ -9,11 +9,12 @@ IMAGE_FOLDER = "data/images"
 
 GRID_SIZE = 5
 
+# ✅ SOLVABLE MAZE
 MAZE = [
-    [1, 1, 0, 1, 1],
-    [0, 1, 0, 1, 0],
     [1, 1, 1, 1, 1],
-    [0, 0, 0, 1, 0],
+    [0, 0, 1, 0, 1],
+    [1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 1],
     [1, 1, 1, 1, 1],
 ]
 
@@ -40,12 +41,19 @@ def find_my_family_screen(go_to):
         return
 
     # ----------------------------
-    # Session Init
+    # SESSION INIT
     # ----------------------------
-    st.session_state.setdefault("started", False)
-    st.session_state.setdefault("pos", START)
-    st.session_state.setdefault("target", random.choice(family))
-    st.session_state.setdefault("msg", "")
+    if "started" not in st.session_state:
+        st.session_state.started = False
+
+    if "pos" not in st.session_state:
+        st.session_state.pos = START
+
+    if "target" not in st.session_state:
+        st.session_state.target = random.choice(family)
+
+    if "msg" not in st.session_state:
+        st.session_state.msg = ""
 
     # ======================================================
     # START SCREEN
@@ -64,6 +72,7 @@ def find_my_family_screen(go_to):
 
         if st.button("▶ Start Game"):
             st.session_state.started = True
+            st.experimental_rerun()   # ✅ FIX DOUBLE CLICK
 
         if st.button("⬅ Back to Home"):
             go_to("home")
@@ -107,11 +116,11 @@ def find_my_family_screen(go_to):
         st.warning(st.session_state.msg)
 
     # ======================================================
-    # MOVE LOGIC (NO stop())
+    # MOVE LOGIC (CORRECT)
     # ======================================================
     r, c = st.session_state.pos
 
-    def try_move(nr, nc):
+    def move(nr, nc):
         if 0 <= nr < GRID_SIZE and 0 <= nc < GRID_SIZE and MAZE[nr][nc] == 1:
             st.session_state.pos = (nr, nc)
             st.session_state.msg = ""
@@ -119,23 +128,24 @@ def find_my_family_screen(go_to):
             st.session_state.msg = "🚫 Can't go that way!"
 
     st.markdown("### Move the child")
-    col1, col2, col3 = st.columns(3)
+
+    col1, col2, col3 = st.columns([1, 1, 1])
 
     with col2:
         if st.button("⬆ Up"):
-            try_move(r - 1, c)
+            move(r - 1, c)
 
     with col1:
         if st.button("⬅ Left"):
-            try_move(r, c - 1)
+            move(r, c - 1)
 
     with col3:
         if st.button("➡ Right"):
-            try_move(r, c + 1)
+            move(r, c + 1)
 
     with col2:
         if st.button("⬇ Down"):
-            try_move(r + 1, c)
+            move(r + 1, c)
 
     # ======================================================
     # SUCCESS
@@ -147,6 +157,7 @@ def find_my_family_screen(go_to):
         if st.button("🔁 Play Again"):
             for k in ["started", "pos", "target", "msg"]:
                 st.session_state.pop(k, None)
+            st.experimental_rerun()
 
     if st.button("⬅ Back to Home"):
         for k in ["started", "pos", "target", "msg"]:
