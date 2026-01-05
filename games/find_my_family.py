@@ -13,7 +13,7 @@ GRID_SIZE = 5
 st.markdown("""
 <style>
     .main {
-        background-color: #f6f8fc;
+        background-color: #a5cad2;
     }
     .card {
         background-color: white;
