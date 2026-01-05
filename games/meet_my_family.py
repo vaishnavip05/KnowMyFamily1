@@ -11,7 +11,7 @@ IMAGE_FOLDER = "data/images"
 st.markdown("""
 <style>
     .main {
-        background-color: #ffafa8;
+        background-color: #ff7b89;
     }
     .card {
         background-color: white;
