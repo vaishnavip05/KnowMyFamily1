@@ -15,6 +15,19 @@ st.set_page_config(
     page_title="Know My Family",
     layout="wide"
 )
+st.markdown("""
+<style>
+    /* Full app background */
+    body {
+        background-color: #8a5082;
+    }
+
+    /* Streamlit app container */
+    .stApp {
+        background-color: #8a5082;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ================= UI ENHANCEMENT ONLY =================
 st.markdown("""
