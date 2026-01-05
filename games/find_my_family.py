@@ -12,6 +12,20 @@ GRID_SIZE = 5
 # ================= UI ENHANCEMENT ONLY =================
 st.markdown("""
 <style>
+    /* Full app background */
+    body {
+        background-color: #ff7b89;
+    }
+
+    /* Streamlit app container */
+    .stApp {
+        background-color: #ff7b89;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
     .main {
         background-color: #a5cad2;
     }
