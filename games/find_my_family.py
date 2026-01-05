@@ -9,17 +9,33 @@ IMAGE_FOLDER = "data/images"
 
 GRID_SIZE = 5
 
-# ✅ FIXED SOLVABLE MAZE (1 = path, 0 = wall)
-MAZE = [
-    [1, 1, 1, 1, 1],
-    [0, 0, 1, 1, 1],
-    [1, 1, 1, 0, 1],
-    [1, 0, 0, 1, 1],
-    [1, 1, 1, 0, 1],
-]
-
-START = (0, 0)
-END = (4, 4)
+# ================= UI ENHANCEMENT ONLY =================
+st.markdown("""
+<style>
+    .main {
+        background-color: #f6f8fc;
+    }
+    .card {
+        background-color: white;
+        padding: 16px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .maze-cell {
+        font-size: 28px;
+        text-align: center;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 16px;
+    }
+</style>
+""", unsafe_allow_html=True)
+# ======================================================
 
 # -----------------------------------
 def load_family_data():
@@ -47,7 +63,7 @@ def find_my_family_screen(go_to):
         st.session_state.started = False
 
     if "pos" not in st.session_state:
-        st.session_state.pos = START
+        st.session_state.pos = (0, 0)
 
     if "target" not in st.session_state:
         st.session_state.target = random.choice(family)
@@ -64,15 +80,20 @@ def find_my_family_screen(go_to):
         cols = st.columns(3)
         for i, m in enumerate(family):
             with cols[i % 3]:
+                st.markdown("<div class='card'>", unsafe_allow_html=True)
+
                 img = os.path.join(IMAGE_FOLDER, m["image"])
                 if os.path.exists(img):
                     st.image(Image.open(img), width=120)
-                st.write(f"**{m['name']}**")
+
+                st.markdown(f"**{m['name']}**")
                 st.write(m["relationship"])
+
+                st.markdown("</div>", unsafe_allow_html=True)
 
         if st.button("▶ Start Game"):
             st.session_state.started = True
-            st.session_state.msg = ""   # ✅ CLEAR ERROR
+            st.session_state.msg = ""
             st.rerun()
 
         if st.button("⬅ Back to Home"):
@@ -90,25 +111,31 @@ def find_my_family_screen(go_to):
     )
 
     # =====================================================
-    # DRAW MAZE GRID
+    # DRAW MAZE GRID (VISUAL ONLY)
     # =====================================================
     for r in range(GRID_SIZE):
         cols = st.columns(GRID_SIZE)
         for c in range(GRID_SIZE):
             with cols[c]:
                 if (r, c) == st.session_state.pos:
-                    st.markdown("👶")
-                elif (r, c) == END:
+                    st.markdown("<div class='maze-cell'>👶</div>", unsafe_allow_html=True)
+                elif (r, c) == (4, 4):
                     img = os.path.join(
                         IMAGE_FOLDER,
                         st.session_state.target["image"]
                     )
                     if os.path.exists(img):
                         st.image(Image.open(img), width=45)
-                elif MAZE[r][c] == 1:
-                    st.markdown("🟣")
+                elif [
+                    [1, 1, 1, 1, 1],
+                    [0, 0, 1, 1, 1],
+                    [1, 1, 1, 0, 1],
+                    [1, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 1],
+                ][r][c] == 1:
+                    st.markdown("<div class='maze-cell'>🟣</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown("⬛")
+                    st.markdown("<div class='maze-cell'>⬛</div>", unsafe_allow_html=True)
 
     # =====================================================
     # MESSAGE
@@ -117,12 +144,18 @@ def find_my_family_screen(go_to):
         st.warning(st.session_state.msg)
 
     # =====================================================
-    # MOVE LOGIC
+    # MOVE LOGIC (UNCHANGED)
     # =====================================================
     r, c = st.session_state.pos
 
     def move(nr, nc):
-        if 0 <= nr < GRID_SIZE and 0 <= nc < GRID_SIZE and MAZE[nr][nc] == 1:
+        if 0 <= nr < GRID_SIZE and 0 <= nc < GRID_SIZE and [
+            [1, 1, 1, 1, 1],
+            [0, 0, 1, 1, 1],
+            [1, 1, 1, 0, 1],
+            [1, 0, 0, 1, 1],
+            [1, 1, 1, 0, 1],
+        ][nr][nc] == 1:
             st.session_state.pos = (nr, nc)
             st.session_state.msg = ""
         else:
@@ -151,7 +184,7 @@ def find_my_family_screen(go_to):
     # =====================================================
     # SUCCESS
     # =====================================================
-    if st.session_state.pos == END:
+    if st.session_state.pos == (4, 4):
         st.balloons()
         st.success(f"🎉 You reached {st.session_state.target['name']}!")
 
