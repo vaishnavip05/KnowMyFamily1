@@ -11,6 +11,20 @@ AUDIO_FOLDER = "data/audio"
 # ================= UI ENHANCEMENT ONLY =================
 st.markdown("""
 <style>
+    /* Full app background */
+    body {
+        background-color: #f6f8fc;
+    }
+
+    /* Streamlit app container */
+    .stApp {
+        background-color: #f6f8fc;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
     .main {
         background-color: #8a5082;
     }
