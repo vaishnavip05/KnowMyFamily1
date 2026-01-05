@@ -8,6 +8,36 @@ DATA_FILE = "data/family_data.json"
 IMAGE_FOLDER = "data/images"
 AUDIO_FOLDER = "data/audio"
 
+# ================= UI ENHANCEMENT ONLY =================
+st.markdown("""
+<style>
+    .main {
+        background-color: #f6f8fc;
+    }
+    .card {
+        background-color: white;
+        padding: 18px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .option-card {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 15px;
+    }
+</style>
+""", unsafe_allow_html=True)
+# ======================================================
 
 # --------------------------------------------------
 # Load family data
@@ -17,7 +47,6 @@ def load_family_data():
         with open(DATA_FILE, "r") as f:
             return json.load(f)
     return []
-
 
 # --------------------------------------------------
 # Reset game state
@@ -30,7 +59,6 @@ def reset_who_speaking():
     ]:
         if key in st.session_state:
             del st.session_state[key]
-
 
 # --------------------------------------------------
 # Who Is Speaking Game
@@ -67,16 +95,20 @@ def who_is_speaking_screen(go_to):
         cols = st.columns(3)
         for idx, member in enumerate(family_with_audio):
             with cols[idx % 3]:
+                st.markdown("<div class='card'>", unsafe_allow_html=True)
+
                 img = os.path.join(IMAGE_FOLDER, member["image"])
                 if os.path.exists(img):
-                    st.image(Image.open(img), width=150)
+                    st.image(Image.open(img), width=140)
 
-                st.write(f"**{member['name']}**")
+                st.markdown(f"**{member['name']}**")
                 st.write(member["relationship"])
 
                 audio = os.path.join(AUDIO_FOLDER, member["audio"])
                 if os.path.exists(audio):
                     st.audio(audio)
+
+                st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("---")
 
@@ -95,12 +127,10 @@ def who_is_speaking_screen(go_to):
     if "ws_target" not in st.session_state:
         st.session_state.ws_target = random.choice(family_with_audio)
 
-        # Pick up to 3 options
         options = family_with_audio.copy()
         random.shuffle(options)
         st.session_state.ws_options = options[:3]
 
-        # Ensure target is included
         if st.session_state.ws_target not in st.session_state.ws_options:
             st.session_state.ws_options[-1] = st.session_state.ws_target
             random.shuffle(st.session_state.ws_options)
@@ -109,7 +139,6 @@ def who_is_speaking_screen(go_to):
 
     st.subheader("🎧 Whose voice is this?")
     st.audio(os.path.join(AUDIO_FOLDER, target["audio"]))
-
     st.markdown("🔁 You can replay the voice as many times as you want")
 
     st.markdown("---")
@@ -118,9 +147,11 @@ def who_is_speaking_screen(go_to):
 
     for idx, member in enumerate(st.session_state.ws_options):
         with cols[idx]:
+            st.markdown("<div class='option-card'>", unsafe_allow_html=True)
+
             img = os.path.join(IMAGE_FOLDER, member["image"])
             if os.path.exists(img):
-                st.image(Image.open(img), width=150)
+                st.image(Image.open(img), width=140)
 
             if st.button(member["name"], key=f"choose_{member['name']}"):
                 if member == target:
@@ -128,6 +159,8 @@ def who_is_speaking_screen(go_to):
                     st.success("🎉 Correct! Great listening!")
                 else:
                     st.warning("❌ Try again 🙂")
+
+            st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
