@@ -12,7 +12,7 @@ AUDIO_FOLDER = "data/audio"
 st.markdown("""
 <style>
     .main {
-        background-color: #f6f8fc;
+        background-color: #b0ebd2;
     }
     .card {
         background-color: white;
