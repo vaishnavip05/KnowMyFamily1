@@ -16,6 +16,45 @@ st.set_page_config(
     layout="wide"
 )
 
+# ================= UI ENHANCEMENT ONLY =================
+st.markdown("""
+<style>
+    .main {
+        background-color: #f6f8fc;
+    }
+    h1 {
+        text-align: center;
+        color: #3b3b3b;
+    }
+    .subtitle {
+        text-align: center;
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 30px;
+    }
+    .card {
+        background-color: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 16px;
+    }
+    .parent-box {
+        background-color: #fff3cd;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+</style>
+""", unsafe_allow_html=True)
+# =======================================================
+
 DATA_FILE = "data/family_data.json"
 
 # --------------------------------------------------
@@ -48,40 +87,51 @@ def go_to(page_name):
 # HOME SCREEN (AFTER SETUP)
 # --------------------------------------------------
 def home_screen():
-    st.title("Know My Family")
-    st.write("Learn your family through simple and friendly games 💙")
+
+    st.markdown("<h1>Know My Family 💙</h1>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='subtitle'>Learn your family through simple and friendly games</div>",
+        unsafe_allow_html=True
+    )
 
     # ---- Parent option to edit setup ----
+    st.markdown("<div class='parent-box'>", unsafe_allow_html=True)
     st.markdown("### 👨‍👩‍👧 Parent Options")
     if st.button("✏️ Edit Family Setup"):
         go_to("setup")
         return
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown("### 🎮 Games")
 
-    # ---- Games Section ----
     col1, col2, col3 = st.columns(3)
 
     with col1:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.subheader("👨‍👩‍👧 Meet My Family")
-        st.write("Learn names and relationships")
-        if st.button("Play", key="meet_family"):
+        st.write("Learn names and relationships with pictures.")
+        if st.button("▶ Play", key="meet_family"):
             go_to("meet_my_family")
             return
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.subheader("🛤️ Find My Family")
-        st.write("Follow the path to the right person")
-        if st.button("Play", key="find_family"):
+        st.write("Guide the child through paths to reach family members.")
+        if st.button("▶ Play", key="find_family"):
             go_to("find_my_family")
             return
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col3:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.subheader("🔊 Who Is Speaking?")
-        st.write("Match voices to family members")
-        if st.button("Play", key="who_speaking"):
+        st.write("Listen carefully and identify whose voice it is.")
+        if st.button("▶ Play", key="who_speaking"):
             go_to("who_is_speaking")
             return
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
 # MAIN APP FLOW
