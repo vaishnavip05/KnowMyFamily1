@@ -20,7 +20,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main {
-        background-color: #f6f8fc;
+        background-color: #6f5f90;
     }
     h1 {
         text-align: center;
