@@ -7,6 +7,43 @@ from PIL import Image
 DATA_FILE = "data/family_data.json"
 IMAGE_FOLDER = "data/images"
 
+# ================= UI ENHANCEMENT ONLY =================
+st.markdown("""
+<style>
+    .main {
+        background-color: #f6f8fc;
+    }
+    .card {
+        background-color: white;
+        padding: 18px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .name-card {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+    }
+    .selected {
+        background-color: #e0f0ff;
+        border: 2px solid #4da6ff;
+    }
+    .matched {
+        background-color: #e6ffea;
+        border: 2px solid #5cb85c;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 15px;
+    }
+</style>
+""", unsafe_allow_html=True)
+# ======================================================
+
 # --------------------------------------------------
 # Load family data
 # --------------------------------------------------
@@ -45,11 +82,16 @@ def meet_my_family_screen(go_to):
         cols = st.columns(3)
         for idx, member in enumerate(family):
             with cols[idx % 3]:
+                st.markdown("<div class='card'>", unsafe_allow_html=True)
+
                 img_path = os.path.join(IMAGE_FOLDER, member["image"])
                 if os.path.exists(img_path):
                     st.image(Image.open(img_path), width=140)
-                st.write(f"**{member['name']}**")
+
+                st.markdown(f"**{member['name']}**")
                 st.caption(member["relationship"])
+
+                st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("---")
         if st.button("▶ Start Game"):
@@ -92,10 +134,16 @@ def meet_my_family_screen(go_to):
         for name in st.session_state.shuffled_names:
 
             if name in st.session_state.matched:
-                st.success(f"{name} ✓")
+                st.markdown(
+                    f"<div class='name-card matched'>✔ {name}</div>",
+                    unsafe_allow_html=True
+                )
 
             elif st.session_state.selected_name == name:
-                st.info(f"👉 {name}")
+                st.markdown(
+                    f"<div class='name-card selected'>👉 {name}</div>",
+                    unsafe_allow_html=True
+                )
 
             else:
                 if st.button(name, key=f"name_{name}"):
@@ -109,24 +157,30 @@ def meet_my_family_screen(go_to):
     with col2:
         st.markdown("### 🖼 Photos")
 
-        for member in st.session_state.shuffled_photos:
-            img_path = os.path.join(IMAGE_FOLDER, member["image"])
-            if os.path.exists(img_path):
-                st.image(Image.open(img_path), width=160)
+        cols = st.columns(2)
+        for idx, member in enumerate(st.session_state.shuffled_photos):
+            with cols[idx % 2]:
+                st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-            if member["name"] in st.session_state.matched:
-                st.success("Matched ✅")
+                img_path = os.path.join(IMAGE_FOLDER, member["image"])
+                if os.path.exists(img_path):
+                    st.image(Image.open(img_path), width=160)
 
-            else:
-                if st.button("Select Photo", key=f"photo_{member['name']}"):
-                    if st.session_state.selected_name == member["name"]:
-                        st.session_state.matched.append(member["name"])
-                        st.session_state.message = "Correct! 🎉"
-                    else:
-                        st.session_state.message = "Try again 🙂"
+                if member["name"] in st.session_state.matched:
+                    st.success("Matched ✅")
 
-                    st.session_state.selected_name = None
-                    st.rerun()
+                else:
+                    if st.button("Select Photo", key=f"photo_{member['name']}"):
+                        if st.session_state.selected_name == member["name"]:
+                            st.session_state.matched.append(member["name"])
+                            st.session_state.message = "Correct! 🎉"
+                        else:
+                            st.session_state.message = "Try again 🙂"
+
+                        st.session_state.selected_name = None
+                        st.rerun()
+
+                st.markdown("</div>", unsafe_allow_html=True)
 
     # -----------------------
     # Feedback Message
