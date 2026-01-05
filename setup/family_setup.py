@@ -14,12 +14,12 @@ st.markdown("""
 <style>
     /* Full app background */
     body {
-        background-color: #758eb7;
+        background-color: #a5cad2;
     }
 
     /* Streamlit app container */
     .stApp {
-        background-color: #758eb7;
+        background-color: #a5cad2;
     }
 </style>
 """, unsafe_allow_html=True)
